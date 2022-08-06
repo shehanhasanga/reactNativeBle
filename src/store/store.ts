@@ -7,6 +7,7 @@ import {combineReducers} from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import {all, fork} from 'redux-saga/effects';
 import {bluetoothSaga} from '../modules/Bluetooth/bluetooth.saga';
+import blereducer from "../modules/Bluetooth/reducer/bleAdapterReducer";
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -15,7 +16,7 @@ const rootSaga = function* rootSaga() {
 };
 
 const rootReducer = combineReducers({
-  bluetooth: bluetoothReducer.reducer,
+  bluetooth: bluetoothReducer.reducer
 });
 
 export const store = configureStore({

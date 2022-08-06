@@ -5,18 +5,22 @@ type BluetoothState = {
   availableDevices: Array<BluetoothPeripheral>;
   isConnectingToDevice: boolean;
   connectedDevice: string | null;
+  connectedDeviceList : Array<BluetoothPeripheral>;
   heartRate: number;
   isRetrievingHeartRateUpdates: boolean;
   isScanning: boolean;
+  adapterStatus : String;
 };
 
 const initialState: BluetoothState = {
   availableDevices: [],
   isConnectingToDevice: false,
   connectedDevice: null,
+  connectedDeviceList :[],
   heartRate: 0,
   isRetrievingHeartRateUpdates: false,
   isScanning: false,
+  adapterStatus : '',
 };
 
 const bluetoothReducer = createSlice({
@@ -26,15 +30,24 @@ const bluetoothReducer = createSlice({
     scanForPeripherals: state => {
       state.isScanning = true;
     },
+    stopScanForPeripherals: state => {
+      state.isScanning = false;
+    },
     initiateConnection: (state, _) => {
       state.isConnectingToDevice = true;
+      console.log("connection is initialized+++++++++++")
+      state.availableDevices = Array<BluetoothPeripheral>();
     },
-    connectPeripheral: (state, action) => {
+    connectPeripheral: (state, action: PayloadAction<BluetoothPeripheral>) => {
       state.isConnectingToDevice = false;
-      state.connectedDevice = action.payload;
+      state.connectedDevice = action.payload.id;
+      state.connectedDeviceList.push(action.payload);
     },
     updateHeartRate: (state, action) => {
       state.heartRate = action.payload;
+    },
+    getAdapterStatusSuccess: (state, action: PayloadAction<string>) => {
+      state.adapterStatus = action.payload;
     },
     startHeartRateScan: state => {
       state.isRetrievingHeartRateUpdates = true;
@@ -62,15 +75,19 @@ export const {
   scanForPeripherals,
   initiateConnection,
   startHeartRateScan,
+  stopScanForPeripherals,
+  getAdapterStatusSuccess,
 } = bluetoothReducer.actions;
 
 export const sagaActionConstants = {
   SCAN_FOR_PERIPHERALS: bluetoothReducer.actions.scanForPeripherals.type,
+  STOP_SCAN: bluetoothReducer.actions.stopScanForPeripherals.type,
   ON_DEVICE_DISCOVERED: bluetoothReducer.actions.bluetoothPeripheralsFound.type,
   INITIATE_CONNECTION: bluetoothReducer.actions.initiateConnection.type,
   CONNECTION_SUCCESS: bluetoothReducer.actions.connectPeripheral.type,
   UPDATE_HEART_RATE: bluetoothReducer.actions.updateHeartRate.type,
   START_HEART_RATE_SCAN: bluetoothReducer.actions.startHeartRateScan.type,
+  GET_ADAPTER_STATUS_SUCCESS: bluetoothReducer.actions.getAdapterStatusSuccess.type,
 };
 
 export default bluetoothReducer;

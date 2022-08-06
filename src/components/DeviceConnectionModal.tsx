@@ -26,10 +26,12 @@ type DeviceModalProps = {
 const DeviceModalListItem: FC<DeviceModalListItemProps> = props => {
   const {item, connectToPeripheral, closeModal} = props;
   const connectAndCloseModal = useCallback(() => {
+    console.log(item)
+    console.log("item data is +++++++++++++++++")
     connectToPeripheral(item.item);
     closeModal();
   }, [closeModal, connectToPeripheral, item.item]);
-  return <CTAButton title={item.item.name} onPress={connectAndCloseModal} />;
+  return <CTAButton title={item.item.id} onPress={connectAndCloseModal} />;
 };
 
 const DeviceModal: FC<DeviceModalProps> = props => {

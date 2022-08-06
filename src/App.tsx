@@ -9,7 +9,17 @@
  */
 
 import React, {type PropsWithChildren, useState, useEffect} from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import {
+  Alert,
+  FlatList,
+  ListRenderItemInfo,
+  PermissionsAndroid,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text, TouchableOpacity, TouchableOpacityComponent,
+  View
+} from 'react-native';
 import {Provider, useDispatch, useSelector} from 'react-redux';
 import CTAButton from './components/CTAButton';
 import DeviceModal from './components/DeviceConnectionModal';
@@ -21,8 +31,17 @@ import {
 } from './modules/Bluetooth/bluetooth.reducer';
 import {RootState, store} from './store/store';
 import {FC} from 'react';
-import BluetoothLeManager from './modules/Bluetooth/BluetoothLeManager';
 import Blemanage from "./modules/Bluetooth/Blemanage";
+import ConnectedDeviceList from "./components/ConnectedDeviceList";
+import 'react-native-gesture-handler';
+import { createStackNavigator } from '@react-navigation/stack';
+import {NavigationContainer} from "@react-navigation/native";
+import ScanDevice from "./pages/ScanDevice";
+import HomeView from "./pages/HomeView";
+import TextModal from "./models/InfoModal";
+import InfoModal from "./models/InfoModal";
+import {getAdapterStatusnew} from "./modules/Bluetooth/actions/bleActions";
+import DeviceView from "./pages/DeviceView";
 
 // import {Device} from "react-native-ble-plx";
 
@@ -37,41 +56,95 @@ const App: FC = () => {
 
 const Home: FC = () => {
   useEffect( () => {
-    // setblemanager(Blemanage.getInstance());
+      getBleStatus()
   }, []);
+
+
+    const getBleStatus = () => {
+        dispatch(getAdapterStatusnew())
+    }
   const dispatch = useDispatch();
+
   const devices = useSelector(
     (state: RootState) => state.bluetooth.availableDevices,
   );
 
+  const connecteDevices : Array<BluetoothPeripheral> = useSelector(
+      (state: RootState) => state.bluetooth.connectedDeviceList,
+  );
+
+
+  const Stack = createStackNavigator();
   function scanAndConnect() {
     blemanager?.scanAndConnect();
   }
 
-  // const scan = () => {
-  //   bleManager.startDeviceScan(
-  //      null,
-  //       null,
-  //        (error: ?Error, scannedDevice: ?Device) => {
-  //
-  //   }
-  // )
-  // }
   const [blemanager, setblemanager] = useState<Blemanage>();
-  const scandevice = () => {
-    blemanager?.scanAndConnect();
-  };
+  const [demodevices, setdemodevices] = useState<Array<BluetoothPeripheral>>( []);
+  // const scandevice = () => {
+  //   blemanager?.scanAndConnect();
+  // };
 
   const heartRate = useSelector(
     (state: RootState) => state.bluetooth.heartRate,
   );
 
 
+  const showAlert = (message :string, title:string) => {
+    Alert.alert(
+        title,
+        message,
+        [
+          { text: "OK", onPress: () => console.log("OK Pressed") }
+        ]
+    );
+  }
 
+  // const permissionCheck = () => {
+  //   PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then(response => {
+  //     if (response === true){
+  //       //Open scanner
+  //     }
+  //     else if (response === false){
+  //       showAlert("Please enable location permission in device settings", "Permisssion required")
+  //     }
+  //   })
+  //   }
+  const requestLocationPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location permission for bluetooth scanning',
+            message: 'wahtever',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  };
 
   const isConnected = useSelector(
     (state: RootState) => !!state.bluetooth.connectedDevice,
   );
+
+  const scandevice = async () => {
+    const permission = await requestLocationPermission();
+    if(permission){
+      dispatch(scanForPeripherals());
+    } else {
+      showAlert("Please enable location permission in device settings", "Permisssion required")
+    }
+  }
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
@@ -79,46 +152,47 @@ const Home: FC = () => {
 
   const connectToPeripheral = (device: BluetoothPeripheral) =>
     dispatch(initiateConnection(device.id));
+  const renderDeviceModalListItem = (item: ListRenderItemInfo<BluetoothPeripheral>) => {
+    return (
+        <Text>{item.item.name}</Text>
+    )
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.heartRateTitleWrapper}>
-        {isConnected ? (
-          <>
-            <Text style={styles.heartRateTitleText}>Your Heart Rate Is:</Text>
-            <Text style={styles.heartRateText}>{heartRate} bpm</Text>
-          </>
-        ) : (
-          <Text style={styles.heartRateTitleText}>
-            Please Connect to a Heart Rate Monitor
-          </Text>
-        )}
-      </View>
-      <CTAButton
-        title="Connect"
-        onPress={() => {
-          dispatch(scanForPeripherals());
-          setIsModalVisible(true);
-          // scanAndConnect();
-        }}
-      />
-      {isConnected && (
-        <CTAButton
-          title="Get Heart Rate"
-          onPress={() => {
-            dispatch(startHeartRateScan());
-          }}
-        />
-      )}
-      <DeviceModal
-        devices={devices}
-        visible={isModalVisible}
-        closeModal={closeModal}
-        connectToPeripheral={connectToPeripheral}
-      />
-    </SafeAreaView>
+
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen component={HomeView} name={"Main"} options={{headerShown : false}}/>
+          <Stack.Screen component={DeviceView} name={"DeviceView"} options={{headerStyle:{
+                  backgroundColor : '#353535'
+              }, headerTintColor: '#fff'}  } />
+          <Stack.Screen component={ScanDevice} name={'Scandevice'} options={{headerStyle:{
+              backgroundColor : '#353535'
+              }, headerTintColor: '#fff'}  }/>
+        </Stack.Navigator>
+      </NavigationContainer>
+
   );
 };
+
+
+
+
+
+
+const SecondView = ({}) =>{
+  return (
+      <SafeAreaView style={{
+        flex : 1,
+        justifyContent : 'center',
+        alignItems : 'center',
+        backgroundColor :"#FFFFFF"
+      }}>
+        <Text>Second View</Text>
+      </SafeAreaView>
+  )
+}
+
 
 const styles = StyleSheet.create({
   container: {
@@ -131,6 +205,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heartRateTitleText: {
+    display: 'flex',
+    width: 100,
     fontSize: 30,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -140,6 +216,21 @@ const styles = StyleSheet.create({
     fontSize: 25,
     marginTop: 15,
   },
+  back : {
+   display: 'flex',
+    flexDirection:'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal :10,
+    paddingVertical : 10,
+    height: 200,
+    backgroundColor: '#ff0000',
+    width : '100%'
+  },
+  modalFlatlistContiner: {
+    flex: 1,
+    justifyContent: 'center',
+  }
 });
 
 export default App;
