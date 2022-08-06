@@ -7,7 +7,7 @@ import {
   Text,
   StyleSheet,
   View,
-  TouchableOpacity, Alert, PermissionsAndroid, ScrollView, RefreshControl,
+  TouchableOpacity, Alert, PermissionsAndroid, ScrollView, RefreshControl, Platform,
 } from 'react-native';
 import {BluetoothPeripheral} from '../models/BluetoothPeripheral';
 import ConnectedDeviceList from "../components/ConnectedDeviceList";
@@ -71,7 +71,7 @@ const ScanDevice: FC<ScanDeviceProps> = props => {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
             title: 'Location permission for bluetooth scanning',
-            message: 'wahtever',
+            message: 'Enable ocatio permissions',
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',
@@ -103,11 +103,15 @@ const ScanDevice: FC<ScanDeviceProps> = props => {
   }
 
   const scandevice = async () => {
-    const permission = await requestLocationPermission();
-    if(permission){
+    if(Platform.OS === 'ios') {
       dispatch(scanForPeripherals());
     } else {
-      showAlert("Please enable location permission in device settings", "Permisssion required")
+      const permission = await requestLocationPermission();
+      if(permission){
+        dispatch(scanForPeripherals());
+      } else {
+        showAlert("Please enable location permission in device settings", "Permisssion required")
+      }
     }
   }
 
