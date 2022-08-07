@@ -70,6 +70,7 @@ class BluetoothLeManager {
 
 
     const data = base64.decode(characteristic?.value ?? '');
+    const firstBitValue: number = (<any>data[0]) & 0x01;
     let a: string = characteristic?.value?.substring(0, 1);
     a = "0x" + a;
     console.log(Number(a))
@@ -77,7 +78,7 @@ class BluetoothLeManager {
     console.log("value received ++++++++++++++++++")
     let heartRate: number = -1;
 
-    const firstBitValue: number = (<any>data[0]) & 0x01;
+
 
     if (firstBitValue === 0) {
       heartRate = data[1].charCodeAt(0);
@@ -138,11 +139,30 @@ class BluetoothLeManager {
     const data = base64.decode(characteristic?.value ?? '');
 
   }
+   base64ToBytesArr = (str) => {
+     const abc = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"]; // base64 alphabet
+     let result = [];
+
+     for (let i = 0; i < str.length / 4; i++) {
+       let chunk = [...str.slice(4 * i, 4 * i + 4)]
+       let bin = chunk.map(x => abc.indexOf(x).toString(2).padStart(6, 0)).join('');
+       let bytes = bin.match(/.{1,8}/g).map(x => +('0b' + x));
+       result.push(...bytes.slice(0, 3 - (str[4 * i + 2] == "=") - (str[4 * i + 3] == "=")));
+     }
+     return result;
+   }
 
   readNotificationData =  (command : BLECommand, emitter: (arg0: { payload:any }) => void) : Subscription=> {
     return  this.bleManager.monitorCharacteristicForDevice(command.deviceId, command.serviceUUID, command.characteristicUUID, (error, characteristic) => {
+      const data = base64.decode(characteristic?.value ?? '');
+      let byteArray  = this.base64ToBytesArr(characteristic?.value)
+      let stringArray = ""
+      for(let i = 0 ; i < byteArray.length; i++){
+        stringArray  += byteArray[i]
+      }
+
           emitter({
-            payload: characteristic?.value
+            payload: stringArray
           })
         }
     )

@@ -4,7 +4,7 @@ import {END, eventChannel, TakeableChannel} from 'redux-saga';
 import {call, put, take, takeEvery} from 'redux-saga/effects';
 import {sagaActionConstants} from './bluetooth.reducer';
 import bluetoothLeManager, {BLECommand} from '../../services/bluetooth/BluetoothLeManager';
-import {actionTypes, sendAckForCommand} from "./actions";
+import {actionTypes, getCurrentDeviceStatusData, getDeviceStatusData, sendAckForCommand} from "./actions";
 import Ack, {AckType} from "../../models/Ble/Ack";
 import Command from "../../models/Ble/commands/Command";
 import {sagaAckConstants} from "./command.reducer";
@@ -72,6 +72,7 @@ function* connectToPeripheral(action: {
 }) {
   const peripheralId = action.payload;
   let device : Device = yield call(bluetoothLeManager.connectToPeripheral, peripheralId);
+
   yield put({
     type: sagaActionConstants.CONNECTION_SUCCESS,
     payload: {
@@ -81,6 +82,7 @@ function* connectToPeripheral(action: {
     },
   });
   yield call(bluetoothLeManager.stopScanningForPeripherals);
+  yield put(getCurrentDeviceStatusData(device.id));
 }
 
 function* getAdapterUpdates() {
@@ -154,7 +156,7 @@ function* getHeartRateUpdates(): Generator<AnyAction, void, TakeableHeartRate> {
 }
 
 function* getDeviceStatusUpdates(action: {
-  type: typeof actionTypes.GET_DEVICESTATUS;
+  type: typeof GET_DEVICESTATUS;
   payload: ActionCommand;
 }) {
   let bleCommand = convertActionCommandToBleCommand(action.payload)

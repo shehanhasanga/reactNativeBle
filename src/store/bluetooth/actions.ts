@@ -46,6 +46,21 @@ export const getDeviceStatusData = (command: Command) : GetDeviceStatusData   =>
     }
 }
 
+export const getCurrentDeviceStatusData = (deviceId: string) : GetDeviceStatusData   => {
+    let command:ActionCommand  =  {
+        deviceId : deviceId,
+        serviceUUID : "0000ae00-0000-1000-8000-00805f9b34fb",
+        characteristicUUID : "0000ae02-0000-1000-8000-00805f9b34fb",
+        data : "",
+        commandType : "GET_DEVICESTATUS"
+
+    }
+    return {
+        type: GET_DEVICESTATUS,
+        payload :command
+    }
+}
+
 export const sendAckForCommand = (command: CommandAck) : SendAckForCommand   => {
     return {
         type: SEND_COMMAND_ACK,
