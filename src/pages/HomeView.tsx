@@ -18,10 +18,10 @@ import {BluetoothPeripheral} from '../models/BluetoothPeripheral';
 import ConnectedDeviceList from '../components/ConnectedDeviceList';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../store/store';
-import {getAdapterStatus} from "../modules/Bluetooth/bluetooth.reducer";
-import {getAdapterStatusnew} from "../modules/Bluetooth/actions/bleActions";
-import {AdapterState} from "../modules/Bluetooth/BluetoothConstants";
-import InfoModal from "../models/InfoModal";
+import {getAdapterStatus} from "../store/bluetooth/bluetooth.reducer";
+import {getAdapterStatusnew} from "../store/bluetooth/actions";
+import {AdapterState} from "../services/bluetooth/BluetoothConstants";
+import InfoModal from "../components/modals/InfoModal";
 import DeviceView from "./DeviceView";
 type HomeViewProps = {
   devices: BluetoothPeripheral[];

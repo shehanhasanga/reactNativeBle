@@ -13,7 +13,7 @@ import {BluetoothPeripheral} from '../models/BluetoothPeripheral';
 import ConnectedDeviceList from "../components/ConnectedDeviceList";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../store/store";
-import {initiateConnection, scanForPeripherals, stopScanForPeripherals} from "../modules/Bluetooth/bluetooth.reducer";
+import {initiateConnection, scanForPeripherals, stopScanForPeripherals} from "../store/bluetooth/bluetooth.reducer";
 import Blemanage from "../modules/Bluetooth/Blemanage";
 // import Arrow from '../assets/icons/arrow.svg';
 

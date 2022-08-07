@@ -28,7 +28,7 @@ import {
   initiateConnection,
   scanForPeripherals,
   startHeartRateScan,
-} from './modules/Bluetooth/bluetooth.reducer';
+} from './store/bluetooth/bluetooth.reducer';
 import {RootState, store} from './store/store';
 import {FC} from 'react';
 import Blemanage from "./modules/Bluetooth/Blemanage";
@@ -38,9 +38,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {NavigationContainer} from "@react-navigation/native";
 import ScanDevice from "./pages/ScanDevice";
 import HomeView from "./pages/HomeView";
-import TextModal from "./models/InfoModal";
-import InfoModal from "./models/InfoModal";
-import {getAdapterStatusnew} from "./modules/Bluetooth/actions/bleActions";
+import TextModal from "./components/modals/InfoModal";
+import InfoModal from "./components/modals/InfoModal";
+import {getAdapterStatus} from "./store/bluetooth/actions";
 import DeviceView from "./pages/DeviceView";
 
 // import {Device} from "react-native-ble-plx";
@@ -61,7 +61,7 @@ const Home: FC = () => {
 
 
     const getBleStatus = () => {
-        dispatch(getAdapterStatusnew())
+        dispatch(getAdapterStatus())
     }
   const dispatch = useDispatch();
 

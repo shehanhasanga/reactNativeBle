@@ -1,11 +1,14 @@
-import {Device} from 'react-native-ble-plx';
+import {Device, Subscription} from 'react-native-ble-plx';
 import {AnyAction} from 'redux';
 import {END, eventChannel, TakeableChannel} from 'redux-saga';
 import {call, put, take, takeEvery} from 'redux-saga/effects';
 import {sagaActionConstants} from './bluetooth.reducer';
-import bluetoothLeManager from './BluetoothLeManager';
-import {BluetoothPeripheral} from "../../models/BluetoothPeripheral";
-import {actionTypes} from "./actions/bleActions";
+import bluetoothLeManager, {BLECommand} from '../../services/bluetooth/BluetoothLeManager';
+import {actionTypes, sendAckForCommand} from "./actions";
+import Ack, {AckType} from "../../models/Ble/Ack";
+import Command from "../../models/Ble/commands/Command";
+import {sagaAckConstants} from "./command.reducer";
+import {ActionCommand, CommandAck, GET_ADAPTER_STATUS, GET_DEVICESTATUS, SEND_COMMAND} from "./bluetooth.types";
 
 type TakeableDevice = {
   payload: {id: string; name: string; serviceUUIDs: string};
@@ -103,6 +106,28 @@ function* getAdapterUpdates() {
   }
 }
 
+ const convertActionCommandToBleCommand = (actionCommand: ActionCommand) : BLECommand => {
+ let bleCommand : BLECommand = {
+   deviceId : actionCommand.deviceId,
+   serviceUUID : actionCommand.serviceUUID,
+   characteristicUUID : actionCommand.characteristicUUID,
+   data : actionCommand.data
+ }
+ return bleCommand;
+}
+
+function* sendCommand(action: {
+  type: typeof SEND_COMMAND;
+  payload: ActionCommand;
+}) {
+  let actioncommand = action.payload
+  let bleCommand : BLECommand = convertActionCommandToBleCommand(actioncommand);
+  let success = yield call(bluetoothLeManager.writeCharacteristicWithResponse,bleCommand)
+  let ack :CommandAck = {deviceId:actioncommand.deviceId, ackType:actioncommand.commandType}
+  yield put(sendAckForCommand(ack));
+}
+
+
 function* getHeartRateUpdates(): Generator<AnyAction, void, TakeableHeartRate> {
   const onHeartrateUpdate = () =>
     eventChannel(emitter => {
@@ -128,6 +153,35 @@ function* getHeartRateUpdates(): Generator<AnyAction, void, TakeableHeartRate> {
   }
 }
 
+function* getDeviceStatusUpdates(action: {
+  type: typeof actionTypes.GET_DEVICESTATUS;
+  payload: ActionCommand;
+}) {
+  let bleCommand = convertActionCommandToBleCommand(action.payload)
+  const onStatusUpdate = () =>
+      eventChannel(emitter => {
+        let subscription :Subscription = bluetoothLeManager.startDeviceStatusStreamingdata(emitter, bleCommand);
+
+        return () => {
+          subscription.remove();
+        };
+      });
+
+  const channel: TakeableChannel<string> = yield call(onStatusUpdate);
+
+  try {
+    while (true) {
+      const response = yield take(channel);
+      yield put({
+        type: sagaActionConstants.GET_DEVICE_UPDATES,
+        payload: response.payload,
+      });
+    }
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 export function* bluetoothSaga() {
   yield takeEvery(
     sagaActionConstants.SCAN_FOR_PERIPHERALS,
@@ -139,5 +193,7 @@ export function* bluetoothSaga() {
     sagaActionConstants.START_HEART_RATE_SCAN,
     getHeartRateUpdates,
   );
-  yield takeEvery(actionTypes.ADAPTER_STATUS, getAdapterUpdates);
+  yield takeEvery(GET_ADAPTER_STATUS, getAdapterUpdates);
+  yield takeEvery(SEND_COMMAND, sendCommand);
+  yield takeEvery(GET_DEVICESTATUS, getDeviceStatusUpdates);
 }

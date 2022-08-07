@@ -10,6 +10,7 @@ type BluetoothState = {
   isRetrievingHeartRateUpdates: boolean;
   isScanning: boolean;
   adapterStatus : String;
+  deviceStatus: String;
 };
 
 const initialState: BluetoothState = {
@@ -21,6 +22,7 @@ const initialState: BluetoothState = {
   isRetrievingHeartRateUpdates: false,
   isScanning: false,
   adapterStatus : '',
+  deviceStatus : '',
 };
 
 const bluetoothReducer = createSlice({
@@ -52,6 +54,7 @@ const bluetoothReducer = createSlice({
     startHeartRateScan: state => {
       state.isRetrievingHeartRateUpdates = true;
     },
+
     bluetoothPeripheralsFound: (
       state: BluetoothState,
       action: PayloadAction<BluetoothPeripheral>,
@@ -67,6 +70,11 @@ const bluetoothReducer = createSlice({
         state.availableDevices = state.availableDevices.concat(action.payload);
       }
     },
+
+    getDeviceStatusData: (state, action:PayloadAction<string>) => {
+      state.deviceStatus = action.payload;
+    },
+
   },
 });
 
@@ -88,6 +96,7 @@ export const sagaActionConstants = {
   UPDATE_HEART_RATE: bluetoothReducer.actions.updateHeartRate.type,
   START_HEART_RATE_SCAN: bluetoothReducer.actions.startHeartRateScan.type,
   GET_ADAPTER_STATUS_SUCCESS: bluetoothReducer.actions.getAdapterStatusSuccess.type,
+  GET_DEVICE_UPDATES : bluetoothReducer.actions.getDeviceStatusData.type,
 };
 
 export default bluetoothReducer;

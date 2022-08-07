@@ -1,13 +1,13 @@
 import logger from 'redux-logger';
 
 import {configureStore} from '@reduxjs/toolkit';
-import bluetoothReducer from '../modules/Bluetooth/bluetooth.reducer';
+import bluetoothReducer from './bluetooth/bluetooth.reducer';
 import {useDispatch} from 'react-redux';
 import {combineReducers} from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import {all, fork} from 'redux-saga/effects';
-import {bluetoothSaga} from '../modules/Bluetooth/bluetooth.saga';
-import blereducer from "../modules/Bluetooth/reducer/bleAdapterReducer";
+import {bluetoothSaga} from './bluetooth/bluetooth.saga';
+import testReducer from "./bluetooth/test.reducer";
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -16,7 +16,8 @@ const rootSaga = function* rootSaga() {
 };
 
 const rootReducer = combineReducers({
-  bluetooth: bluetoothReducer.reducer
+  bluetooth: bluetoothReducer.reducer,
+  commandAcknew : testReducer
 });
 
 export const store = configureStore({
