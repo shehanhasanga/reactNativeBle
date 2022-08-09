@@ -1,8 +1,8 @@
-/* eslint-disable no-bitwise */
+
 import base64 from 'react-native-base64';
 import {BleError, BleManager, Characteristic, Device, Service, State, Subscription,} from 'react-native-ble-plx';
-import Command from "../../models/Ble/commands/Command";
-
+import {DeviceStatus} from "../../models/Ble/DeviceStatus";
+import {BleDevice} from "../../models/Ble/BleDevice";
 const HEART_RATE_UUID = 'f0000005-0451-4000-b000-000000000000';
 const HEART_RATE_CHARACTERISTIC = 'f000beef-0451-4000-b000-000000000000';
 
@@ -139,6 +139,7 @@ class BluetoothLeManager {
     const data = base64.decode(characteristic?.value ?? '');
 
   }
+
    base64ToBytesArr = (str) => {
      const abc = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"]; // base64 alphabet
      let result = [];
@@ -152,17 +153,33 @@ class BluetoothLeManager {
      return result;
    }
 
-  readNotificationData =  (command : BLECommand, emitter: (arg0: { payload:any }) => void) : Subscription=> {
+  readNotificationData = (command : BLECommand, emitter: (arg0: { payload:any }) => void) : Subscription=> {
     return  this.bleManager.monitorCharacteristicForDevice(command.deviceId, command.serviceUUID, command.characteristicUUID, (error, characteristic) => {
       const data = base64.decode(characteristic?.value ?? '');
-      let byteArray  = this.base64ToBytesArr(characteristic?.value)
+      let udata  = this.base64ToBytesArr(characteristic?.value)
       let stringArray = ""
-      for(let i = 0 ; i < byteArray.length; i++){
-        stringArray  += byteArray[i]
-      }
-
+      let deviceStatus : DeviceStatus = {
+        pressureTop : udata[0] * 256  + udata[1],
+        batteryVal : udata[2],
+        pressureMid : udata[3] * 256 + udata[4],
+        unidentified_1 : udata[5],
+        pressureLow : udata[6] * 256 + udata[7],
+        pwmTop : udata[8],
+        pwmMid : udata[9],
+        pwmLow : udata[10],
+        keepWorkTime : udata[11] * 256 + udata[12],
+        apWorkMode : udata[13],
+        intensityFlag : udata[14] - 1,
+        modeStep : udata[15],
+        stepTime : udata[16],
+        pauseFlag : udata[17],
+        }
+        let bleDevice : BleDevice = {
+          id : command.deviceId,
+          status : deviceStatus
+        }
           emitter({
-            payload: stringArray
+            payload: bleDevice
           })
         }
     )
@@ -171,7 +188,6 @@ class BluetoothLeManager {
   startDeviceStatusStreamingdata =  (
       emitter: (arg0: { payload: number | BleError }) => void, command : BLECommand
   ) :Subscription => {
-    console.log("getting device status ++++++++++++")
     return this.readNotificationData(command , emitter)
   };
 

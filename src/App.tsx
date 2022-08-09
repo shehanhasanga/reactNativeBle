@@ -46,7 +46,6 @@ import DeviceView from "./pages/DeviceView";
 // import {Device} from "react-native-ble-plx";
 
 const App: FC = () => {
-
   return (
     <Provider store={store}>
       <Home />
@@ -162,10 +161,11 @@ const Home: FC = () => {
 
       <NavigationContainer>
         <Stack.Navigator>
+
           <Stack.Screen component={HomeView} name={"Main"} options={{headerShown : false}}/>
-          <Stack.Screen component={DeviceView} name={"DeviceView"} options={{headerStyle:{
-                  backgroundColor : '#353535'
-              }, headerTintColor: '#fff'}  } />
+            <Stack.Screen component={DeviceView} name={"DeviceView"} options={{headerStyle:{
+                    backgroundColor : '#353535'
+                }, headerTintColor: '#fff'}  }  />
           <Stack.Screen component={ScanDevice} name={'Scandevice'} options={{headerStyle:{
               backgroundColor : '#353535'
               }, headerTintColor: '#fff'}  }/>

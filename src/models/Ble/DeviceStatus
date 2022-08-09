@@ -1,0 +1,16 @@
+export type DeviceStatus = {
+  pressureTop: number,
+  batteryVal: number,
+  pressureMid: number,
+  unidentified_1: number,
+  pressureLow: number,
+  pwmTop: number,
+  pwmMid: number,
+  pwmLow: number,
+  keepWorkTime: number,
+  apWorkMode: number,
+  intensityFlag: number,
+  modeStep: number,
+  stepTime: number,
+  pauseFlag: number,
+};

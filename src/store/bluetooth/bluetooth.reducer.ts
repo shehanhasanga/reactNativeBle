@@ -37,7 +37,6 @@ const bluetoothReducer = createSlice({
     },
     initiateConnection: (state, _) => {
       state.isConnectingToDevice = true;
-      console.log("connection is initialized+++++++++++")
       state.availableDevices = Array<BluetoothPeripheral>();
     },
     connectPeripheral: (state, action: PayloadAction<BluetoothPeripheral>) => {

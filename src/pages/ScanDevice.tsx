@@ -13,9 +13,7 @@ import {BluetoothPeripheral} from '../models/BluetoothPeripheral';
 import ConnectedDeviceList from "../components/ConnectedDeviceList";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../store/store";
-import {initiateConnection, scanForPeripherals, stopScanForPeripherals} from "../store/bluetooth/bluetooth.reducer";
-import Blemanage from "../modules/Bluetooth/Blemanage";
-// import Arrow from '../assets/icons/arrow.svg';
+import {initiateConnectionAction, startScanDevicesAction, stopScanAction} from "../store/bluetooth/actions";
 
 type ScanDeviceProps = {
   devices: BluetoothPeripheral[];
@@ -60,7 +58,7 @@ const ScanDevice: FC<ScanDeviceProps> = props => {
   );
   const connectToPeripheral = (id:string) => {
     setConnectingDeviceId(id)
-    dispatch(initiateConnection(id));
+    dispatch(initiateConnectionAction(id));
   }
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -99,16 +97,16 @@ const ScanDevice: FC<ScanDeviceProps> = props => {
     }
   }
   const stopScan = async () => {
-    dispatch(stopScanForPeripherals());
+    dispatch(stopScanAction());
   }
 
   const scandevice = async () => {
     if(Platform.OS === 'ios') {
-      dispatch(scanForPeripherals());
+      dispatch(startScanDevicesAction());
     } else {
       const permission = await requestLocationPermission();
       if(permission){
-        dispatch(scanForPeripherals());
+        dispatch(startScanDevicesAction());
       } else {
         showAlert("Please enable location permission in device settings", "Permisssion required")
       }
